@@ -1,3 +1,13 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
-
+﻿using QuizMaker;
+namespace QuizMaker
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var quizManager = new QuizManager();
+            var ui = new UI(quizManager);
+            ui.Run();
+        }
+    }
+}
