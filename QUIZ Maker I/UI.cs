@@ -5,10 +5,12 @@ namespace QuizMaker
     public class UI
     {
         private readonly QuizManager _quizManager;
+        private readonly Random _random;
 
         public UI(QuizManager quizManager)
         {
             _quizManager = quizManager;
+            _random = new Random();
         }
 
         public void Run()
@@ -25,7 +27,7 @@ namespace QuizMaker
                 switch (choice)
                 {
                     case "1":
-                        InteractWithCreator();
+                        AddQuestion();
                         break;
                     case "2":
                         ConductQuiz();
@@ -40,7 +42,7 @@ namespace QuizMaker
             }
         }
 
-        private void InteractWithCreator()
+        private void AddQuestion()
         {
             Console.Write(Constants.EnterQuestionPrompt);
             string? questionText = Console.ReadLine();
@@ -79,7 +81,7 @@ namespace QuizMaker
             }
 
             Console.Write(Constants.EnterCorrectAnswersPrompt);
-            var correctAnswers = Console.ReadLine()?.Split(',');
+            var correctAnswers = Console.ReadLine()?.Split(Constants.SplitSeparator);
             if (correctAnswers == null || correctAnswers.Length == 0)
             {
                 Console.WriteLine("At least one correct answer must be provided.");
@@ -101,26 +103,8 @@ namespace QuizMaker
 
         private void ConductQuiz()
         {
-            Console.Write(Constants.EnterSubjectForQuizPrompt);
-            string? subject = Console.ReadLine();
-            if (string.IsNullOrEmpty(subject))
-            {
-                Console.WriteLine("Subject cannot be empty.");
-                return;
-            }
-
-            Console.Write(Constants.EnterNumberOfQuestionsPrompt);
-            if (!int.TryParse(Console.ReadLine(), out int numberOfQuestions))
-            {
-                Console.WriteLine("Invalid number of questions.");
-                return;
-            }
-
-            if (numberOfQuestions < Constants.MinQuestions || numberOfQuestions > Constants.MaxQuestions)
-            {
-                Console.WriteLine($"Number of questions should be between {Constants.MinQuestions} and {Constants.MaxQuestions}.");
-                return;
-            }
+            string subject = PromptForSubject();
+            int numberOfQuestions = PromptForNumberOfQuestions();
 
             var questions = _quizManager.GetQuestionsBySubject(subject);
             if (questions.Count == 0)
@@ -129,7 +113,6 @@ namespace QuizMaker
                 return;
             }
 
-            Random random = new Random();
             int score = 0;
             var usedQuestions = new HashSet<int>();
 
@@ -138,7 +121,7 @@ namespace QuizMaker
                 int index;
                 do
                 {
-                    index = random.Next(questions.Count);
+                    index = _random.Next(questions.Count);
                 } while (!usedQuestions.Add(index));
 
                 var question = questions[index];
@@ -149,7 +132,7 @@ namespace QuizMaker
                 }
 
                 Console.Write("Enter your answer(s) (comma-separated for multiple answers): ");
-                var userAnswers = Console.ReadLine()?.Split(',');
+                var userAnswers = Console.ReadLine()?.Split(Constants.SplitSeparator);
                 if (userAnswers == null)
                 {
                     Console.WriteLine("Invalid answers.");
@@ -178,6 +161,38 @@ namespace QuizMaker
             }
 
             Console.WriteLine(string.Format(Constants.FinalScoreMessage, score, Math.Min(numberOfQuestions, questions.Count)));
+        }
+
+        private string PromptForSubject()
+        {
+            string? subject;
+            do
+            {
+                Console.Write(Constants.EnterSubjectForQuizPrompt);
+                subject = Console.ReadLine();
+                if (string.IsNullOrEmpty(subject))
+                {
+                    Console.WriteLine("Subject cannot be empty.");
+                }
+            } while (string.IsNullOrEmpty(subject));
+            return subject;
+        }
+
+        private int PromptForNumberOfQuestions()
+        {
+            int numberOfQuestions;
+            bool validInput;
+            do
+            {
+                Console.Write(Constants.EnterNumberOfQuestionsPrompt);
+                validInput = int.TryParse(Console.ReadLine(), out numberOfQuestions);
+                if (!validInput || numberOfQuestions < Constants.MinQuestions || numberOfQuestions > Constants.MaxQuestions)
+                {
+                    Console.WriteLine($"Number of questions should be between {Constants.MinQuestions} and {Constants.MaxQuestions}.");
+                    validInput = false;
+                }
+            } while (!validInput);
+            return numberOfQuestions;
         }
     }
 }

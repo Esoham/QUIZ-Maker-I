@@ -17,5 +17,6 @@
         public const string FinalScoreMessage = "Your final score is {0} out of {1}.";
         public const int MinQuestions = 10;
         public const int MaxQuestions = 20;
+        public const string SplitSeparator = ",";
     }
 }

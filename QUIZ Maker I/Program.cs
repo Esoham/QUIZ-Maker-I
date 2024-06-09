@@ -1,4 +1,4 @@
-﻿using QuizMaker;
+﻿using System;
 namespace QuizMaker
 {
     class Program
