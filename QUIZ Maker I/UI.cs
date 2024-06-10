@@ -19,86 +19,85 @@ namespace QuizMaker
             bool running = true;
             while (running)
             {
-                Console.WriteLine("1. Add a Question");
-                Console.WriteLine("2. Take the Quiz");
-                Console.WriteLine("3. Exit");
-                Console.Write("Choose an option: ");
+                DisplayMenuOptions();
                 var choice = Console.ReadLine();
                 switch (choice)
                 {
-                    case "1":
+                    case Constants.MENU_OPTION_ADD_QUESTION:
                         AddQuestion();
                         break;
-                    case "2":
+                    case Constants.MENU_OPTION_CONDUCT_QUIZ:
                         ConductQuiz();
                         break;
-                    case "3":
+                    case Constants.MENU_OPTION_EXIT:
                         running = false;
                         break;
                     default:
-                        Console.WriteLine(Constants.InvalidOptionMessage);
+                        Console.WriteLine(Constants.INVALID_OPTION_MESSAGE);
                         break;
                 }
             }
         }
 
+        private void DisplayMenuOptions()
+        {
+            Console.WriteLine($"{Constants.MENU_OPTION_ADD_QUESTION}. {Constants.MENU_OPTION_ADD_QUESTION_DESC}");
+            Console.WriteLine($"{Constants.MENU_OPTION_CONDUCT_QUIZ}. {Constants.MENU_OPTION_CONDUCT_QUIZ_DESC}");
+            Console.WriteLine($"{Constants.MENU_OPTION_EXIT}. {Constants.MENU_OPTION_EXIT_DESC}");
+            Console.Write("Choose an option: ");
+        }
+
         private void AddQuestion()
         {
-            Console.Write(Constants.EnterQuestionPrompt);
-            string? questionText = Console.ReadLine();
-            if (string.IsNullOrEmpty(questionText))
+            string questionText;
+            do
             {
-                Console.WriteLine("Question text cannot be empty.");
+                questionText = PromptForInput(Constants.ENTER_QUESTION_PROMPT, Constants.QuestionTextEmptyError);
+            } while (string.IsNullOrEmpty(questionText));
+
+            string subject;
+            do
+            {
+                subject = PromptForInput(Constants.ENTER_SUBJECT_PROMPT, Constants.SubjectEmptyError);
+            } while (string.IsNullOrEmpty(subject));
+
+            int numberOfChoices;
+            do
+            {
+                numberOfChoices = PromptForNumber(Constants.ENTER_NUMBER_OF_CHOICES_PROMPT, Constants.InvalidNumberOfChoicesError);
+            } while (numberOfChoices <= 0);
+
+            var choices = GetChoices(numberOfChoices);
+            if (choices == null)
+            {
                 return;
             }
 
-            Console.Write(Constants.EnterSubjectPrompt);
-            string? subject = Console.ReadLine();
-            if (string.IsNullOrEmpty(subject))
+            List<int> correctAnswerIndexes;
+            do
             {
-                Console.WriteLine("Subject cannot be empty.");
-                return;
-            }
-
-            Console.Write(Constants.EnterNumberOfChoicesPrompt);
-            if (!int.TryParse(Console.ReadLine(), out int numberOfChoices))
-            {
-                Console.WriteLine("Invalid number of choices.");
-                return;
-            }
-
-            var choices = new List<string>();
-            for (int i = 0; i < numberOfChoices; i++)
-            {
-                Console.Write(string.Format(Constants.EnterChoicePrompt, i + 1));
-                string? choice = Console.ReadLine();
-                if (string.IsNullOrEmpty(choice))
-                {
-                    Console.WriteLine("Choice text cannot be empty.");
-                    return;
-                }
-                choices.Add(choice);
-            }
-
-            Console.Write(Constants.EnterCorrectAnswersPrompt);
-            var correctAnswers = Console.ReadLine()?.Split(Constants.SplitSeparator);
-            if (correctAnswers == null || correctAnswers.Length == 0)
-            {
-                Console.WriteLine("At least one correct answer must be provided.");
-                return;
-            }
-
-            var correctAnswerIndexes = new List<int>();
-            foreach (var answer in correctAnswers)
-            {
-                if (int.TryParse(answer.Trim(), out int index))
-                {
-                    correctAnswerIndexes.Add(index - 1);
-                }
-            }
+                var correctAnswersInput = PromptForInput(Constants.ENTER_CORRECT_ANSWERS_PROMPT, Constants.AtLeastOneCorrectAnswerError);
+                correctAnswerIndexes = ParseCorrectAnswers(correctAnswersInput, numberOfChoices);
+            } while (correctAnswerIndexes.Count == 0);
 
             var question = new Question(questionText, choices, correctAnswerIndexes, subject);
             _quizManager.AddQuestion(question);
+        }
+
+        private List<string>? GetChoices(int numberOfChoices)
+        {
+            var choices = new List<string>();
+            for (int i = 0; i < numberOfChoices; i++)
+            {
+                string choice;
+                do
+                {
+                    choice = PromptForInput(string.Format(Constants.ENTER_CHOICE_PROMPT, i + 1), Constants.ChoiceTextEmptyError);
+                } while (string.IsNullOrEmpty(choice));
+
+                choices.Add(choice);
+            }
+            return choices;
         }
 
         private void ConductQuiz()
@@ -109,7 +108,7 @@ namespace QuizMaker
             var questions = _quizManager.GetQuestionsBySubject(subject);
             if (questions.Count == 0)
             {
-                Console.WriteLine(string.Format(Constants.NoQuestionsAvailableMessage, subject));
+                Console.WriteLine(string.Format(Constants.NO_QUESTIONS_AVAILABLE_MESSAGE, subject));
                 return;
             }
 
@@ -131,16 +130,14 @@ namespace QuizMaker
                     Console.WriteLine($"{j + 1}. {question.Choices[j]}");
                 }
 
-                Console.Write("Enter your answer(s) (comma-separated for multiple answers): ");
-                var userAnswers = Console.ReadLine()?.Split(Constants.SplitSeparator);
-                if (userAnswers == null)
+                string userAnswersInput;
+                do
                 {
-                    Console.WriteLine("Invalid answers.");
-                    continue;
-                }
+                    userAnswersInput = PromptForInput("Enter your answer(s) (comma-separated for multiple answers): ", Constants.InvalidAnswersError);
+                } while (string.IsNullOrEmpty(userAnswersInput));
 
                 var userAnswerIndexes = new List<int>();
-                foreach (var answer in userAnswers)
+                foreach (var answer in userAnswersInput.Split(Constants.SPLIT_SEPARATOR))
                 {
                     if (int.TryParse(answer.Trim(), out int answerIndex))
                     {
@@ -151,16 +148,16 @@ namespace QuizMaker
                 if (_quizManager.ValidateAnswers(question, userAnswerIndexes))
                 {
                     score++;
-                    Console.WriteLine(Constants.CorrectMessage);
+                    Console.WriteLine(Constants.CORRECT_MESSAGE);
                 }
                 else
                 {
-                    Console.WriteLine(Constants.IncorrectMessage);
+                    Console.WriteLine(Constants.INCORRECT_MESSAGE);
                 }
                 Console.WriteLine();
             }
 
-            Console.WriteLine(string.Format(Constants.FinalScoreMessage, score, Math.Min(numberOfQuestions, questions.Count)));
+            Console.WriteLine(string.Format(Constants.FINAL_SCORE_MESSAGE, score, Math.Min(numberOfQuestions, questions.Count)));
         }
 
         private string PromptForSubject()
@@ -168,12 +165,7 @@ namespace QuizMaker
             string? subject;
             do
             {
-                Console.Write(Constants.EnterSubjectForQuizPrompt);
-                subject = Console.ReadLine();
-                if (string.IsNullOrEmpty(subject))
-                {
-                    Console.WriteLine("Subject cannot be empty.");
-                }
+                subject = PromptForInput(Constants.ENTER_SUBJECT_FOR_QUIZ_PROMPT, Constants.SubjectEmptyError);
             } while (string.IsNullOrEmpty(subject));
             return subject;
         }
@@ -184,15 +176,65 @@ namespace QuizMaker
             bool validInput;
             do
             {
-                Console.Write(Constants.EnterNumberOfQuestionsPrompt);
+                Console.Write(Constants.ENTER_NUMBER_OF_QUESTIONS_PROMPT);
                 validInput = int.TryParse(Console.ReadLine(), out numberOfQuestions);
-                if (!validInput || numberOfQuestions < Constants.MinQuestions || numberOfQuestions > Constants.MaxQuestions)
+                if (!validInput || numberOfQuestions < Constants.MIN_QUESTIONS || numberOfQuestions > Constants.MAX_QUESTIONS)
                 {
-                    Console.WriteLine($"Number of questions should be between {Constants.MinQuestions} and {Constants.MaxQuestions}.");
+                    Console.WriteLine($"Number of questions should be between {Constants.MIN_QUESTIONS} and {Constants.MAX_QUESTIONS}.");
                     validInput = false;
                 }
             } while (!validInput);
             return numberOfQuestions;
+        }
+
+        private string PromptForInput(string prompt, string errorMessage)
+        {
+            string? input;
+            do
+            {
+                Console.Write(prompt);
+                input = Console.ReadLine();
+                if (string.IsNullOrEmpty(input))
+                {
+                    Console.WriteLine(errorMessage);
+                }
+            } while (string.IsNullOrEmpty(input));
+            return input;
+        }
+
+        private int PromptForNumber(string prompt, string errorMessage, int minValue = int.MinValue, int maxValue = int.MaxValue)
+        {
+            int number;
+            bool validInput;
+            do
+            {
+                Console.Write(prompt);
+                validInput = int.TryParse(Console.ReadLine(), out number);
+                if (!validInput || number < minValue || number > maxValue)
+                {
+                    Console.WriteLine(errorMessage);
+                    validInput = false;
+                }
+            } while (!validInput);
+            return number;
+        }
+
+        private List<int> ParseCorrectAnswers(string correctAnswersInput, int numberOfChoices)
+        {
+            var correctAnswerIndexes = new List<int>();
+            foreach (var answer in correctAnswersInput.Split(Constants.SPLIT_SEPARATOR))
+            {
+                if (int.TryParse(answer.Trim(), out int index) && index > 0 && index <= numberOfChoices)
+                {
+                    correctAnswerIndexes.Add(index - 1);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid answer index. Please enter valid indexes.");
+                    return new List<int>();
+                }
+            }
+            return correctAnswerIndexes;
         }
     }
 }

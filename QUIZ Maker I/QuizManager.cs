@@ -8,7 +8,7 @@ namespace QuizMaker
     public class QuizManager
     {
         private List<Question> questions;
-        private const string DefaultFilePath = Constants.DefaultFilePath;
+        private const string DefaultFilePath = Constants.DEFAULT_FILE_PATH;
         private readonly JsonSerializerOptions _jsonOptions;
 
         public QuizManager()
@@ -33,16 +33,31 @@ namespace QuizMaker
 
         private void SaveQuestions(string filePath)
         {
-            var json = JsonSerializer.Serialize(questions, _jsonOptions);
-            File.WriteAllText(filePath, json);
+            try
+            {
+                var json = JsonSerializer.Serialize(questions, _jsonOptions);
+                File.WriteAllText(filePath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving questions: {ex.Message}");
+            }
         }
 
         private void LoadQuestions(string filePath)
         {
-            if (File.Exists(filePath))
+            try
             {
-                var json = File.ReadAllText(filePath);
-                questions = JsonSerializer.Deserialize<List<Question>>(json, _jsonOptions) ?? new List<Question>();
+                if (File.Exists(filePath))
+                {
+                    var json = File.ReadAllText(filePath);
+                    questions = JsonSerializer.Deserialize<List<Question>>(json, _jsonOptions) ?? new List<Question>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading questions: {ex.Message}");
+                questions = new List<Question>();
             }
         }
 
