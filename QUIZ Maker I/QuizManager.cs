@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+
 namespace QuizMaker
 {
     public class QuizManager
     {
         private List<Question> questions;
-        private const string DefaultFilePath = Constants.DEFAULT_FILE_PATH;
         private readonly JsonSerializerOptions _jsonOptions;
 
         public QuizManager()
         {
             questions = new List<Question>();
             _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
-            LoadQuestions(DefaultFilePath);
+            LoadQuestions(Constants.DEFAULT_FILE_PATH);
         }
 
         public QuizManager(string filePath)
@@ -28,7 +28,7 @@ namespace QuizMaker
         public void AddQuestion(Question question)
         {
             questions.Add(question);
-            SaveQuestions(DefaultFilePath);
+            SaveQuestions(Constants.DEFAULT_FILE_PATH);
         }
 
         private void SaveQuestions(string filePath)
@@ -70,6 +70,19 @@ namespace QuizMaker
         {
             return userAnswers.Count == question.CorrectAnswerIndexes.Count &&
                    userAnswers.All(index => question.CorrectAnswerIndexes.Contains(index));
+        }
+
+        public List<int> ParseUserAnswers(string userAnswersInput)
+        {
+            var userAnswerIndexes = new List<int>();
+            foreach (var answer in userAnswersInput.Split(Constants.SPLIT_SEPARATOR))
+            {
+                if (int.TryParse(answer.Trim(), out int answerIndex))
+                {
+                    userAnswerIndexes.Add(answerIndex - 1);
+                }
+            }
+            return userAnswerIndexes;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 namespace QuizMaker
 {
     public class UI
@@ -54,7 +55,7 @@ namespace QuizMaker
             do
             {
                 questions.Add(AddQuestion());
-                Console.Write("Do you want to add another question? (yes/no): ");
+                Console.Write(Constants.ADD_ANOTHER_QUESTION_PROMPT);
                 continueAdding = Console.ReadLine();
             } while (continueAdding?.ToLower() == "yes");
 
@@ -120,7 +121,7 @@ namespace QuizMaker
                 DisplayQuestionChoices(question);
 
                 string userAnswersInput = GetValidatedInput("Enter your answer(s) (comma-separated for multiple answers): ", Constants.InvalidAnswersError);
-                var userAnswerIndexes = ParseUserAnswers(userAnswersInput);
+                var userAnswerIndexes = _quizManager.ParseUserAnswers(userAnswersInput);
 
                 if (_quizManager.ValidateAnswers(question, userAnswerIndexes))
                 {
@@ -144,19 +145,6 @@ namespace QuizMaker
             {
                 Console.WriteLine($"{j + 1}. {question.Choices[j]}");
             }
-        }
-
-        private List<int> ParseUserAnswers(string userAnswersInput)
-        {
-            var userAnswerIndexes = new List<int>();
-            foreach (var answer in userAnswersInput.Split(Constants.SPLIT_SEPARATOR))
-            {
-                if (int.TryParse(answer.Trim(), out int answerIndex))
-                {
-                    userAnswerIndexes.Add(answerIndex - 1);
-                }
-            }
-            return userAnswerIndexes;
         }
 
         private string GetValidatedInput(string prompt, string errorMessage)

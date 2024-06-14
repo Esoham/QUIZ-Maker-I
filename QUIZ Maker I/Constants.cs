@@ -2,6 +2,7 @@
 {
     public static class Constants
     {
+        // Existing constants...
         public const string DEFAULT_FILE_PATH = "questions.json";
         public const string INVALID_OPTION_MESSAGE = "Invalid option. Please choose again.";
         public const string ENTER_QUESTION_PROMPT = "Enter the question: ";
@@ -36,5 +37,8 @@
         public const string ChoiceTextEmptyError = "Choice text cannot be empty.";
         public const string AtLeastOneCorrectAnswerError = "At least one correct answer must be provided.";
         public const string InvalidAnswersError = "Invalid answers.";
+
+        // New constant for add question prompt
+        public const string ADD_ANOTHER_QUESTION_PROMPT = "Do you want to add another question? (yes/no): ";
     }
 }
