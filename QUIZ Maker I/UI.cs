@@ -34,7 +34,7 @@ namespace QuizMaker
                         running = false;
                         break;
                     default:
-                        Console.WriteLine(Constants.INVALID_OPTION_MESSAGE);
+                        Console.WriteLine(Messages.INVALID_OPTION_MESSAGE);
                         break;
                 }
             }
@@ -42,9 +42,9 @@ namespace QuizMaker
 
         private void DisplayMenuOptions()
         {
-            Console.WriteLine($"{Constants.MENU_OPTION_ADD_QUESTION}. {Constants.MENU_OPTION_ADD_QUESTION_DESC}");
-            Console.WriteLine($"{Constants.MENU_OPTION_CONDUCT_QUIZ}. {Constants.MENU_OPTION_CONDUCT_QUIZ_DESC}");
-            Console.WriteLine($"{Constants.MENU_OPTION_EXIT}. {Constants.MENU_OPTION_EXIT_DESC}");
+            Console.WriteLine($"{Constants.MENU_OPTION_ADD_QUESTION}. {Messages.MENU_OPTION_ADD_QUESTION_DESC}");
+            Console.WriteLine($"{Constants.MENU_OPTION_CONDUCT_QUIZ}. {Messages.MENU_OPTION_CONDUCT_QUIZ_DESC}");
+            Console.WriteLine($"{Constants.MENU_OPTION_EXIT}. {Messages.MENU_OPTION_EXIT_DESC}");
             Console.Write("Choose an option: ");
         }
 
@@ -55,9 +55,9 @@ namespace QuizMaker
             do
             {
                 questions.Add(AddQuestion());
-                Console.Write(Constants.ADD_ANOTHER_QUESTION_PROMPT);
+                Console.Write(Messages.ADD_ANOTHER_QUESTION_PROMPT);
                 continueAdding = Console.ReadLine();
-            } while (continueAdding?.ToLower() == "yes");
+            } while (continueAdding?.ToLower() == Messages.YES_RESPONSE);
 
             foreach (var question in questions)
             {
@@ -67,9 +67,9 @@ namespace QuizMaker
 
         private Question AddQuestion()
         {
-            string questionText = GetValidatedInput(Constants.ENTER_QUESTION_PROMPT, Constants.QuestionTextEmptyError);
-            string subject = GetValidatedInput(Constants.ENTER_SUBJECT_PROMPT, Constants.SubjectEmptyError);
-            int numberOfChoices = GetValidatedNumber(Constants.ENTER_NUMBER_OF_CHOICES_PROMPT, Constants.InvalidNumberOfChoicesError);
+            string questionText = GetValidatedInput(Messages.ENTER_QUESTION_PROMPT, Messages.QuestionTextEmptyError);
+            string subject = GetValidatedInput(Messages.ENTER_SUBJECT_PROMPT, Messages.SubjectEmptyError);
+            int numberOfChoices = GetValidatedNumber(Messages.ENTER_NUMBER_OF_CHOICES_PROMPT, Messages.InvalidNumberOfChoicesError);
 
             var choices = GetChoices(numberOfChoices);
             if (choices == null)
@@ -77,7 +77,7 @@ namespace QuizMaker
                 throw new InvalidOperationException("Choices cannot be null.");
             }
 
-            var correctAnswersInput = GetValidatedInput(Constants.ENTER_CORRECT_ANSWERS_PROMPT, Constants.AtLeastOneCorrectAnswerError);
+            var correctAnswersInput = GetValidatedInput(Messages.ENTER_CORRECT_ANSWERS_PROMPT, Messages.AtLeastOneCorrectAnswerError);
             var correctAnswerIndexes = ParseCorrectAnswers(correctAnswersInput, numberOfChoices);
 
             return new Question(questionText, choices, correctAnswerIndexes, subject);
@@ -88,7 +88,7 @@ namespace QuizMaker
             var choices = new List<string>();
             for (int i = 0; i < numberOfChoices; i++)
             {
-                string choice = GetValidatedInput(string.Format(Constants.ENTER_CHOICE_PROMPT, i + 1), Constants.ChoiceTextEmptyError);
+                string choice = GetValidatedInput(string.Format(Messages.ENTER_CHOICE_PROMPT, i + 1), Messages.ChoiceTextEmptyError);
                 choices.Add(choice);
             }
             return choices;
@@ -96,13 +96,13 @@ namespace QuizMaker
 
         private void ConductQuiz()
         {
-            string subject = GetValidatedInput(Constants.ENTER_SUBJECT_FOR_QUIZ_PROMPT, Constants.SubjectEmptyError);
-            int numberOfQuestions = GetValidatedNumber(Constants.ENTER_NUMBER_OF_QUESTIONS_PROMPT, Constants.InvalidNumberOfChoicesError, Constants.MIN_QUESTIONS, Constants.MAX_QUESTIONS);
+            string subject = GetValidatedInput(Messages.ENTER_SUBJECT_FOR_QUIZ_PROMPT, Messages.SubjectEmptyError);
+            int numberOfQuestions = GetValidatedNumber(Messages.ENTER_NUMBER_OF_QUESTIONS_PROMPT, Messages.InvalidNumberOfChoicesError, Constants.MIN_QUESTIONS, Constants.MAX_QUESTIONS);
 
             var questions = _quizManager.GetQuestionsBySubject(subject);
             if (questions.Count == 0)
             {
-                Console.WriteLine(string.Format(Constants.NO_QUESTIONS_AVAILABLE_MESSAGE, subject));
+                Console.WriteLine(string.Format(Messages.NO_QUESTIONS_AVAILABLE_MESSAGE, subject));
                 return;
             }
 
@@ -120,22 +120,22 @@ namespace QuizMaker
                 var question = questions[index];
                 DisplayQuestionChoices(question);
 
-                string userAnswersInput = GetValidatedInput("Enter your answer(s) (comma-separated for multiple answers): ", Constants.InvalidAnswersError);
+                string userAnswersInput = GetValidatedInput("Enter your answer(s) (comma-separated for multiple answers): ", Messages.InvalidAnswersError);
                 var userAnswerIndexes = _quizManager.ParseUserAnswers(userAnswersInput);
 
                 if (_quizManager.ValidateAnswers(question, userAnswerIndexes))
                 {
                     score++;
-                    Console.WriteLine(Constants.CORRECT_MESSAGE);
+                    Console.WriteLine(Messages.CORRECT_MESSAGE);
                 }
                 else
                 {
-                    Console.WriteLine(Constants.INCORRECT_MESSAGE);
+                    Console.WriteLine(Messages.INCORRECT_MESSAGE);
                 }
                 Console.WriteLine();
             }
 
-            Console.WriteLine(string.Format(Constants.FINAL_SCORE_MESSAGE, score, Math.Min(numberOfQuestions, questions.Count)));
+            Console.WriteLine(string.Format(Messages.FINAL_SCORE_MESSAGE, score, Math.Min(numberOfQuestions, questions.Count)));
         }
 
         private void DisplayQuestionChoices(Question question)

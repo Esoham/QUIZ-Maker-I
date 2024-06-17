@@ -15,7 +15,7 @@ namespace QuizMaker
         {
             questions = new List<Question>();
             _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
-            LoadQuestions(Constants.DEFAULT_FILE_PATH);
+            LoadQuestions(Messages.DEFAULT_FILE_PATH);
         }
 
         public QuizManager(string filePath)
@@ -28,7 +28,7 @@ namespace QuizMaker
         public void AddQuestion(Question question)
         {
             questions.Add(question);
-            SaveQuestions(Constants.DEFAULT_FILE_PATH);
+            SaveQuestions(Messages.DEFAULT_FILE_PATH);
         }
 
         private void SaveQuestions(string filePath)
